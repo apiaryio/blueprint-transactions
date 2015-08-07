@@ -27,7 +27,7 @@ npm install blueprint-transactions
 ```
 compiler = require('blueprint-transactions')
 
-transactions = compiler.compile(ast, './apiay.apib')
+transactions = compiler.compile(ast, './apiary.apib')
 ```
 
 ## Contribution
