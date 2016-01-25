@@ -81,22 +81,23 @@ Represents a single *HTTP Transaction* (Request-Response pair) and its location 
 ### Properties
 
 - request (object) - HTTP Request as described in API Blueprint
-    - body: `Hello world!\n` (string)
-    - headers (object)
-    - uri: `/message` (string) - Informative URI of the Request
     - method
+    - uri: `/message` (string) - Informative URI of the Request
+    - headers (object)
+    - body: `Hello world!\n` (string)
 - response (object) - Expected HTTP Response as described in API Blueprint
     - status: `200` (string)
     - headers (object)
     - body (string)
     - schema (string)
-- path: `::Hello world!:Retreive Message:Example 1` (Transaction Path) - See [Transaction Path](#transaction-path)
+- path: `::Hello world!:Retreive Message::200 (application/json)` ([Transaction Path](#transaction-path))
 - pathOrigin (object) - Object of references to the original API Blueprint AST nodes
     - apiName: `My Api` (string)
     - resourceGroupName: `Greetings` (string)
     - resourceName: `Hello, world!` (string)
     - actionName: `Retrieve Message` (string)
-    - exampleName: `First example` (string)
+    - requestName: `Creating new greeting (application/json)` (string)
+    - responseName: `400 (application/vnd.error+json)` (string)
 
 
 ### Deprecated Properties
@@ -119,15 +120,20 @@ Canonical, deterministic way how to address a single *HTTP Transaction* (single 
 The Transaction Path string is a serialization of the `pathOrigin` object according to following rules:
 
 - Colon `:` character as a delimiter.
-- Implicit *Transaction Examples* ([specification][transaction-examples-spec]) are identified by string `Example <number>`, where number is an index in the array of Transaction Examples, starting from 1 (not 0).
 - Colon character, which happens to be part of any component of the path, is escaped with backslash character `\`.
 - No other characters than colon `:` are escaped.
+
+### Components
+
+- If certain component isn't available in the source data, it is present in both the `pathOrigin` object and the Transaction Path as an empty string.
+- The `requestName` component is defined as name of the request followed by parentheses containing effective value of the `Content-Type` header. Any of those two parts can be omitted. If both parts are present, they're separated by a single space ` ` character.
+- The `responseName` component is defined as HTTP code of the response followed by parentheses containing effective value of the `Content-Type` header. Any of those two parts can be omitted. If both parts are present, they're separated by a single space ` ` character.
 
 
 ## Examples
 
 
-### Full Notation With Multiple Request-Response Pairs
+### Full Notation with Multiple Request-Response Pairs
 
 ```markdown
 # Sample API Name
@@ -136,7 +142,7 @@ The Transaction Path string is a serialization of the `pathOrigin` object accord
 
 ### Sample Resource Name [/resource]
 
-#### Sample Action Name [GET]
+#### Sample Action Name [POST]
 
 + Request (application/json)
 + Response 200 (application/json)
@@ -154,7 +160,8 @@ The Transaction Path string is a serialization of the `pathOrigin` object accord
   "resourceGroupName": "Sample Group Name",
   "resourceName": "Sample Resource Name",
   "actionName": "Sample Action Name",
-  "exampleName": "Example 2"
+  "requestName": "(application/xml)",
+  "responseName": "200 (application/xml)",
 }
 ```
 
@@ -162,7 +169,169 @@ The Transaction Path string is a serialization of the `pathOrigin` object accord
 **Transaction Path:**
 
 ```
-Sample API Name:Sample Group Name:Sample Resource Name:Sample Action Name:Example 2
+Sample API Name:Sample Group Name:Sample Resource Name:Sample Action Name:(application/xml):200 (application/xml)
+```
+
+
+### Full Notation with Implicit Request
+
+```markdown
+# Sample API Name
+
+## Group Sample Group Name
+
+### Sample Resource Name [/resource]
+
+#### Sample Action Name [POST]
+
++ Response 200
+```
+
+
+**Transaction Path Origin:**
+
+```json
+{
+  "apiName": "Sample API Name",
+  "resourceGroupName": "Sample Group Name",
+  "resourceName": "Sample Resource Name",
+  "actionName": "Sample Action Name",
+  "requestName": "",
+  "responseName": "200",
+}
+```
+
+
+**Transaction Path:**
+
+```
+Sample API Name:Sample Group Name:Sample Resource Name:Sample Action Name::200
+```
+
+
+### Full Notation with Multiple Requests within One Transaction Example
+
+```markdown
+# Sample API Name
+
+## Group Sample Group Name
+
+### Sample Resource Name [/resource]
+
+#### Sample Action Name [POST]
+
++ Response 200 (text/plain)
+
++ Request Sample Request Name (application/json)
++ Request Another Sample Request Name (application/json)
++ Request (application/json)
++ Response 200 (application/json)
++ Response 401 (application/json)
+```
+
+
+**Transaction Path Origin:**
+
+```json
+{
+  "apiName": "Sample API Name",
+  "resourceGroupName": "Sample Group Name",
+  "resourceName": "Sample Resource Name",
+  "actionName": "Sample Action Name",
+  "requestName": "Another Sample Request Name (application/json)",
+  "responseName": "401 (application/json)",
+}
+```
+
+
+**Transaction Path:**
+
+```
+Sample API Name:Sample Group Name:Sample Resource Name:Sample Action Name:Another Sample Request Name (application/json):401 (application/json)
+```
+
+
+### Full Notation with Multiple Requests Each Having Multiple Responses
+
+```markdown
+# Sample API Name
+
+## Group Sample Group Name
+
+### Sample Resource Name [/resource]
+
+#### Sample Action Name [POST]
+
++ Response 200 (application/json)
++ Response 401 (application/json)
++ Response 500 (application/json)
+
++ Request (application/xml)
++ Response 200 (application/xml)
++ Response 500 (application/xml)
+```
+
+
+**Transaction Path Origin:**
+
+```json
+{
+  "apiName": "Sample API Name",
+  "resourceGroupName": "Sample Group Name",
+  "resourceName": "Sample Resource Name",
+  "actionName": "Sample Action Name",
+  "requestName": "",
+  "responseName": "401 (application/json)",
+}
+```
+
+
+**Transaction Path:**
+
+```
+Sample API Name:Sample Group Name:Sample Resource Name:Sample Action Name::200 (application/json)
+```
+
+
+### Full Notation with Resolution of the Effective Content-Type Value
+
+```markdown
+# Sample API Name
+
+## Group Sample Group Name
+
+### Sample Resource Name [/resource]
+
+#### Sample Action Name [POST]
+
++ Request
+    + Headers
+
+            X-Request-ID: 30f14c6c1fc85cba12bfd093aa8f90e3
+            Content-Type: application/hal+json
+
++ Response 200
+```
+
+
+**Transaction Path Origin:**
+
+```json
+{
+  "apiName": "Sample API Name",
+  "resourceGroupName": "Sample Group Name",
+  "resourceName": "Sample Resource Name",
+  "actionName": "Sample Action Name",
+  "requestName": "(application/hal+json)",
+  "responseName": "200",
+}
+```
+
+
+**Transaction Path:**
+
+```
+Sample API Name:Sample Group Name:Sample Resource Name:Sample Action Name::200 (application/json)
 ```
 
 
@@ -173,7 +342,7 @@ Sample API Name:Sample Group Name:Sample Resource Name:Sample Action Name:Exampl
 
 ### Sample Resource Name [/resource]
 
-#### Sample Action Name [GET]
+#### Sample Action Name [POST]
 
 + Request (application/json)
 + Response 200 (application/json)
@@ -187,7 +356,8 @@ Sample API Name:Sample Group Name:Sample Resource Name:Sample Action Name:Exampl
   "resourceGroupName": "",
   "resourceName": "Sample Resource Name",
   "actionName": "Sample Action Name",
-  "exampleName": "Example 1"
+  "requestName": "(application/json)",
+  "responseName": "200 (application/json)"
 }
 ```
 
@@ -195,7 +365,7 @@ Sample API Name:Sample Group Name:Sample Resource Name:Sample Action Name:Exampl
 **Transaction Path:**
 
 ```
-Sample API Name::Sample Resource Name:Sample Action Name:Example 1
+Sample API Name::Sample Resource Name:Sample Action Name:(application/json):200 (application/json)
 ```
 
 
@@ -204,7 +374,7 @@ Sample API Name::Sample Resource Name:Sample Action Name:Example 1
 ```markdown
 ### Sample Resource Name [/resource]
 
-#### Sample Action Name [GET]
+#### Sample Action Name [POST]
 
 + Request (application/json)
 + Response 200 (application/json)
@@ -219,25 +389,26 @@ Sample API Name::Sample Resource Name:Sample Action Name:Example 1
   "resourceGroupName": "",
   "resourceName": "Sample Resource Name",
   "actionName": "Sample Action Name",
-  "exampleName": "Example 1"
+  "requestName": "(application/json)",
+  "responseName": "200 (application/json)"
 }
 ```
 
 **Transaction Path:**
 
 ```
-::Sample Resource Name:Sample Action Name:Example 1
+::Sample Resource Name:Sample Action Name:(application/json):200 (application/json)
 ```
 
 
-### Full Notation without Group and API Name with a Colon
+### Full Notation without Group and with API Name Containing a Colon
 
 ```markdown
 # My API: Revamp
 
 ### Sample Resource Name [/resource]
 
-#### Sample Action Name [GET]
+#### Sample Action Name [POST]
 
 + Request (application/json)
 + Response 200 (application/json)
@@ -252,14 +423,15 @@ Sample API Name::Sample Resource Name:Sample Action Name:Example 1
   "resourceGroupName": "",
   "resourceName": "Sample Resource Name",
   "actionName": "Sample Action Name",
-  "exampleName": "Example 1"
+  "requestName": "(application/json)",
+  "responseName": "200 (application/json)"
 }
 ```
 
 **Transaction Path:**
 
 ```
-My API\: Revamp::Sample Resource Name:Sample Action Name:Example 1
+My API\: Revamp::Sample Resource Name:Sample Action Name:(application/json):200 (application/json)
 ```
 
 
@@ -281,7 +453,8 @@ My API\: Revamp::Sample Resource Name:Sample Action Name:Example 1
   "resourceGroupName": "",
   "resourceName": "/message",
   "actionName": "GET",
-  "exampleName": "Example 1"
+  "requestName": "",
+  "responseName": "200 (text/plain)"
 }
 ```
 
@@ -289,7 +462,7 @@ My API\: Revamp::Sample Resource Name:Sample Action Name:Example 1
 **Transaction Path:**
 
 ```
-::/message:GET:Example 1
+::/message:GET::200 (text/plain)
 ```
 
 
@@ -298,13 +471,13 @@ My API\: Revamp::Sample Resource Name:Sample Action Name:Example 1
 Blueprint Transactions library is written in [CoffeeScript](http://coffeescript.org/) language which compiles to JavaScript (ECMAScript 5).
 
 
+[dredd]: https://github.com/apiaryio/dredd
 [mson-spec]: https://github.com/apiaryio/mson
 [api-blueprint]: https://apiblueprint.org/
 [api-blueprint-spec]: https://github.com/apiaryio/api-blueprint/blob/master/API%20Blueprint%20Specification.md
 [api-blueprint-glossary]: https://github.com/apiaryio/api-blueprint/blob/master/Glossary%20of%20Terms.md
 [api-blueprint-ast-spec]: https://github.com/apiaryio/api-blueprint-ast
 [refract-api-desc-ns]: https://github.com/refractproject/refract-spec/blob/master/namespaces/api-description-namespace.md
-[transaction-examples-spec]: https://github.com/apiaryio/api-blueprint/blob/master/API%20Blueprint%20Specification.md#example-multiple-transaction-examples
 
 [transaction-path-spec]: #transaction-path
 [transaction-object-spec]: #transaction-object
