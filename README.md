@@ -37,6 +37,11 @@ npm install blueprint-transactions
 ```
 
 
+## Development
+
+Blueprint Transactions library is written in [CoffeeScript](http://coffeescript.org/) language which compiles to JavaScript (ECMAScript 5).
+
+
 ## Usage
 
 ```javascript
@@ -464,11 +469,6 @@ My API\: Revamp::Sample Resource Name:Sample Action Name:(application/json):200 
 ```
 ::/message:GET::200 (text/plain)
 ```
-
-
-## Contributing
-
-Blueprint Transactions library is written in [CoffeeScript](http://coffeescript.org/) language which compiles to JavaScript (ECMAScript 5).
 
 
 [dredd]: https://github.com/apiaryio/dredd
