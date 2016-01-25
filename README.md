@@ -166,7 +166,7 @@ The Transaction Path string is a serialization of the `pathOrigin` object accord
   "resourceName": "Sample Resource Name",
   "actionName": "Sample Action Name",
   "requestName": "(application/xml)",
-  "responseName": "200 (application/xml)",
+  "responseName": "200 (application/xml)"
 }
 ```
 
@@ -202,7 +202,7 @@ Sample API Name:Sample Group Name:Sample Resource Name:Sample Action Name:(appli
   "resourceName": "Sample Resource Name",
   "actionName": "Sample Action Name",
   "requestName": "",
-  "responseName": "200",
+  "responseName": "200"
 }
 ```
 
@@ -244,7 +244,7 @@ Sample API Name:Sample Group Name:Sample Resource Name:Sample Action Name::200
   "resourceName": "Sample Resource Name",
   "actionName": "Sample Action Name",
   "requestName": "Another Sample Request Name (application/json)",
-  "responseName": "401 (application/json)",
+  "responseName": "401 (application/json)"
 }
 ```
 
@@ -286,7 +286,7 @@ Sample API Name:Sample Group Name:Sample Resource Name:Sample Action Name:Anothe
   "resourceName": "Sample Resource Name",
   "actionName": "Sample Action Name",
   "requestName": "",
-  "responseName": "401 (application/json)",
+  "responseName": "401 (application/json)"
 }
 ```
 
@@ -328,7 +328,7 @@ Sample API Name:Sample Group Name:Sample Resource Name:Sample Action Name::200 (
   "resourceName": "Sample Resource Name",
   "actionName": "Sample Action Name",
   "requestName": "(application/hal+json)",
-  "responseName": "200",
+  "responseName": "200"
 }
 ```
 
