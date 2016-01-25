@@ -132,7 +132,7 @@ The Transaction Path string is a serialization of the `pathOrigin` object accord
 
 - If certain component isn't available in the source data, it is present in both the `pathOrigin` object and the Transaction Path as an empty string.
 - The `requestName` component is defined as name of the request followed by parentheses containing effective value of the `Content-Type` header. Any of those two parts can be omitted. If both parts are present, they're separated by a single space ` ` character.
-- The `responseName` component is defined as HTTP code of the response followed by parentheses containing effective value of the `Content-Type` header. Any of those two parts can be omitted. If both parts are present, they're separated by a single space ` ` character.
+- The `responseName` component is defined as HTTP code of the response followed by parentheses containing effective value of the `Content-Type` header. The Content-Type part can be omitted. If both parts are present, they're separated by a single space ` ` character.
 
 
 ## Examples
