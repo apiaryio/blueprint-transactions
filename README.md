@@ -5,8 +5,6 @@
 [![devDependencies Status](https://david-dm.org/apiaryio/blueprint-transactions/dev-status.png)](https://david-dm.org/apiaryio/blueprint-transactions#info=devDependencies)
 [![Coverage Status](https://coveralls.io/repos/github/apiaryio/blueprint-transactions/badge.svg?branch=master)](https://coveralls.io/github/apiaryio/blueprint-transactions?branch=master)
 
-[![NPM](https://nodei.co/npm/blueprint-transactions.png)](https://nodei.co/npm/blueprint-transactions/)
-
 
 Blueprint Transactions library compiles *HTTP Transactions* (simple Request-Response pairs) from given API Blueprint AST.
 
