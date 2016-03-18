@@ -1,23 +1,36 @@
-# Compile HTTP request-response pairs from API Blueprint AST
+# Deprecated Blueprint Transactions
 
 [![Build Status](https://travis-ci.org/apiaryio/blueprint-transactions.png?branch=master)](https://travis-ci.org/apiaryio/blueprint-transactions)
-[![Dependency Status](https://david-dm.org/apiaryio/blueprint-transactions.png)](https://david-dm.org/apiaryio/blueprint-transactions)
-[![devDependency Status](https://david-dm.org/apiaryio/blueprint-transactions/dev-status.png)](https://david-dm.org/apiaryio/blueprint-transactions#info=devDependencies)
+[![Dependencies Status](https://david-dm.org/apiaryio/blueprint-transactions.png)](https://david-dm.org/apiaryio/blueprint-transactions)
+[![devDependencies Status](https://david-dm.org/apiaryio/blueprint-transactions/dev-status.png)](https://david-dm.org/apiaryio/blueprint-transactions#info=devDependencies)
 [![Coverage Status](https://coveralls.io/repos/github/apiaryio/blueprint-transactions/badge.svg?branch=master)](https://coveralls.io/github/apiaryio/blueprint-transactions?branch=master)
 
 [![NPM](https://nodei.co/npm/blueprint-transactions.png)](https://nodei.co/npm/blueprint-transactions/)
 
-This library takes API Blueprint AST and returns specific HTTP transactions (Request and Response pair).
 
-- Inherits parameters from parent Resource and Action sections
-- Expands URI templates
-- Warns on undefined URI query and path parameters
-- Validates URI parameter types
-- Selects first request and first response if multiple request or responses are given in the API Blueprint AST
-- Assigns path origin object pointing to the API Blueprint AST [EXPERIMENTAL]
-- Compiles [canonical transaction path](#canonical-transaction-paths) as a unique identifier for each transaction [EXPERIMENTAL]
-- Assigns origin object pointing to the API Blueprint AST [DEPRECATED]
-- Compiles Transaction name string for each transaction [DEPRECATED]
+Blueprint Transactions library compiles *HTTP Transactions* (simple Request-Response pairs) from given API Blueprint AST.
+
+> **Note:** To better understand *emphasized* terms in this documentation, please refer to the [Glossary of Terms][api-blueprint-glossary]. All data structures are described using the [MSON][mson-spec] format.
+
+
+## Deprecation Notice
+
+This project is superseded by the [Dredd Transactions][dredd-transactions] library.
+
+
+## Features
+
+* Inherits parameters from parent *Resource* and *Action* sections.
+* Expands *URI Templates*.
+* Warns on undefined placeholders in *URI Templates* (both query and path).
+* Validates URI parameter types.
+* Selects first *Request* and first *Response* if multiple are specified in the API Blueprint.
+
+
+### Deprecated Features
+
+* Compiles [Transaction Name][transaction-object-spec] string (vague identifier) for each *Transaction*.
+* Provides [Transaction Origin][transaction-object-spec] with pointers to the API Blueprint AST.
 
 
 ## Installation
@@ -27,238 +40,82 @@ npm install blueprint-transactions
 ```
 
 
+## Development
+
+Blueprint Transactions library is written in [CoffeeScript](http://coffeescript.org/) language which compiles to JavaScript (ECMAScript 5).
+
+
 ## Usage
 
-```
-compiler = require('blueprint-transactions')
-
-transactions = compiler.compile(ast, './apiary.apib')
-```
-
-`transactions` is now an Array of compiled [Transaction Objects](#compiled-transaction-object-structure)
-
-
-### Compiled Transaction Object Structure
-
-Following is description is in a [MSON](https://github.com/apiaryio/mson) format
-
-- transaction (object)
-    - name: `Hello world! > Retrieve Message` (string) - Transaction identification name used for referencing
-    - path: `::Hello world!:Retreive Message:Example 1` (string) - [Canonical transaction path](#canonical-transaction-paths) [EXPERIMENTAL]
-
-    - request (object) - Request compiled from blueprint
-        - body: `Hello world!\n` (string)
-        - headers (object)
-        - uri: `/message` (string) - Informative URI of the request
-        - method
-
-    - response (object) - Expected response from blueprint
-        - status: `200` (string)
-        - headers (object)
-        - body (string)
-        - schema (string)
-
-    - pathOrigin (object) - Reference to the original blueprint [EXPERIMENTAL]
-        - apiName: `My Api` (string)
-        - resourceGroupName: `Greetings` (string)
-        - resourceName: `Hello, world!` (string)
-        - actionName: `Retrieve Message` (string)
-        - exampleName: `First example` (string)
-
-    - origin (object) - [DEPRECATED, will be moved to Dredd reporter] Reference to the original blueprint for the human readable name
-        - filename: `./blueprint.md` (string)
-        - apiName: `My Api` (string)
-        - resourceGroupName: `Greetings` (string)
-        - resourceName: `Hello, world!` (string)
-        - actionName: `Retrieve Message` (string)
-        - exampleName: `First example` (string)
-
-
-## Canonical transaction paths [EXPERIMENTAL]
-
-Canonical transcation path is added to each compiled HTTP transaction as its identifier.
-
-Format of the transaction path is  a concatenation/serialization of the `origin` object:
-
-- Colon `:` character as a delimiter
-- Examples are identified by string "Example " + its index in array starting from 1 (not 0)
-- Colon character in API Name, Resource Name, Resource Group Name, Action Name or Example Name is escaped with backslash character `\`
-- No other characters than colon `:` are escaped
-
-
-# Examples
-
-
-## 1. Full notation with multiple request-response pairs
-
-```Markdown
-# Some API Name
-
-## Group Some Group Name
-
-### Some Resource Name [/resource]
-
-#### Some Action Name [GET]
-
-+ Request (application/json)
-+ Response 200 (application/json)
-
-+ Request (application/xml)
-+ Response 200 (application/xml)
+```javascript
+var bt = require('blueprint-transactions');
+var transactions = bt.compile(ast, './apiary.apib');
 ```
 
 
-**Transaction origin object:**
+### `compile` (function)
 
-```JSON
-{
-  "apiName": "Some API Name",
-  "resourceGroupName": "Some Group Name",
-  "resourceName": "Some Resource Name",
-  "actionName": "Some Action Name",
-  "exampleName": "Example 2"
-}
+Compiles *HTTP Transactions* from given API Blueprint AST.
+
+```javascript
+transactions = compile(ast, filename);
 ```
 
-
-**Compiled canonical path:**
-
-```
-Some API Name:Some Group Name:Some Resource Name:Some Action Name:Example 2
-```
+- `ast` (API Blueprint AST) - API Blueprint AST provided as a JavaScript object.
+- `filename` (string) - Path to the API Blueprint file. *Soon to be deprecated!*
+- `transactions` (array[Transaction]) - Compiled [Transaction objects][transaction-object-spec].
 
 
-## 2. Full notation without group
+## Data Structures
 
-```Markdown
-# Some API Name
+### API Blueprint AST (object)
 
-### Some Resource Name [/resource]
+API Blueprint AST represents contents of an API Blueprint file in machine-readable way. For details refer to [API Blueprint AST specification][api-blueprint-ast-spec].
 
-#### Some Action Name [GET]
-
-+ Request (application/json)
-+ Response 200 (application/json)
-```
-
-**Transaction origin object:**
-
-```JSON
-{
-  "apiName": "Some API Name",
-  "resourceGroupName": "",
-  "resourceName": "Some Resource Name",
-  "actionName": "Some Action Name",
-  "exampleName": "Example 1"
-}
-```
+> **Note:** API Blueprint AST is deprecated and [API Elements][api-elements] should be used instead. That's why also Blueprint Transactions are deprecated in favor of [Dredd Transactions][dredd-transactions].
 
 
-**Compiled canonical path:**
+<a name="transaction-object"></a>
+### Transaction (object)
 
-```
-Some API Name::Some Resource Name:Some Action Name:Example 1
-```
+Represents a single *HTTP Transaction* (Request-Response pair) and its location in the API Blueprint document. The location is provided in two forms:
 
-
-## 3. Full notation without group and API name
-
-```Markdown
-### Some Resource Name [/resource]
-
-#### Some Action Name [GET]
-
-+ Request (application/json)
-+ Response 200 (application/json)
-```
+- `name` - String representation, both human- and machine-readable.
+- `origin` - Object of references to the original API Blueprint AST nodes.
 
 
-**Transaction origin object:**
+### Properties
 
-```JSON
-{
-  "apiName": "",
-  "resourceGroupName": "",
-  "resourceName": "Some Resource Name",
-  "actionName": "Some Action Name",
-  "exampleName": "Example 1"
-}
-```
-
-**Compiled canonical path:**
-
-```
-::Some Resource Name:Some Action Name:Example 1
-```
+- request (object) - HTTP Request as described in API Blueprint
+    - method
+    - uri: `/message` (string) - Informative URI of the Request
+    - headers (object)
+    - body: `Hello world!\n` (string)
+- response (object) - Expected HTTP Response as described in API Blueprint
+    - status: `200` (string)
+    - headers (object)
+    - body (string)
+    - schema (string)
 
 
-## 4. Full notation without group and API name with a colon
+### Deprecated Properties
 
-```Markdown
-# My API: Revamp
-
-### Some Resource Name [/resource]
-
-#### Some Action Name [GET]
-
-+ Request (application/json)
-+ Response 200 (application/json)
-```
+- name: `Hello world! > Retrieve Message` (string) - Transaction Name, non-deterministic breadcrumb location of the HTTP Transaction within the API Blueprint document
+- origin (object) - Object of references to the original API Blueprint AST nodes
+    - filename: `./blueprint.md` (string)
+    - apiName: `My Api` (string)
+    - resourceGroupName: `Greetings` (string)
+    - resourceName: `Hello, world!` (string)
+    - actionName: `Retrieve Message` (string)
+    - exampleName: `First example` (string)
 
 
-**Transaction origin object:**
-
-```JSON
-{
-  "apiName": "My API: Revamp",
-  "resourceGroupName": "",
-  "resourceName": "Some Resource Name",
-  "actionName": "Some Action Name",
-  "exampleName": "Example 1"
-}
-```
-
-**Compiled canonical path:**
-
-```
-My API\: Revamp::Some Resource Name:Some Action Name:Example 1
-```
+[dredd]: https://github.com/apiaryio/dredd
+[mson-spec]: https://github.com/apiaryio/mson
+[api-elements]: http://api-elements.readthedocs.org/
+[api-blueprint-glossary]: https://github.com/apiaryio/api-blueprint/blob/master/Glossary%20of%20Terms.md
+[api-blueprint-ast-spec]: https://github.com/apiaryio/api-blueprint-ast
+[dredd-transactions]: https://github.com/apiaryio/dredd-transactions/
 
 
-## 5. Simplified notation
-
-```Markdown
-# GET /message
-+ Response 200 (text/plain)
-
-      Hello World
-```
-
-
-**Transaction origin object:**
-
-```JSON
-{
-  "apiName": "",
-  "resourceGroupName": "",
-  "resourceName": "/message",
-  "actionName": "GET",
-  "exampleName": "Example 1"
-}
-```
-
-
-**Compiled canonical path:**
-
-```
-::/message:GET:Example 1
-```
-
-
-## Contribution
-
-Any contribution is more than welcome!
-
-Fork, write tests, write clean, readable code which communicate, use `scripts/bdd`, keep the [test coverage][] and create a pull request.
-
-[test coverage]: https://coveralls.io/r/apiaryio/blueprint-transactinos?branch=master
+[transaction-object-spec]: #transaction-object
