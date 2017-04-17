@@ -5,6 +5,35 @@ exampleToHttpPayloadPair = require './example-to-http-payload-pair'
 convertAstMetadata = require './convert-ast-metadata'
 validateParameters = require './validate-parameters'
 
+isEmptyString = (string) ->
+  string == '' or string == null
+
+getExampleName = (example, exampleIndex) ->
+  name = 'Example ' + (exampleIndex + 1)
+  if isEmptyString(example.name)
+    if example.requests.length > 0
+      reqName = example.requests[0].name
+      if !isEmptyString(reqName)
+        name = reqName
+    else
+      # Names can have empty example
+      name = ''
+
+  name
+
+getExamplePath = (example, exampleIndex) ->
+  name = 'Example ' + (exampleIndex + 1)
+  if isEmptyString(example.name)
+    if example.requests.length > 0
+      reqName = example.requests[0].name
+      if !isEmptyString(reqName)
+        name = reqName
+    else
+      # Path can't have empty example
+      name = 'Example 1'
+
+  name
+
 blueprintAstToRuntime = (blueprintAst, filename) ->
   runtime =
     transactions: []
@@ -105,19 +134,10 @@ blueprintAstToRuntime = (blueprintAst, filename) ->
         if uriResult['uri'] != null
           for example, exampleIndex in action['examples']
 
-            # Names can have empty example
-            if action['examples'].length > 1 and example['name'] == ""
-              origin['exampleName'] = "Example " + (exampleIndex + 1)
-            else
-              origin['exampleName'] = example['name']
+            origin['exampleName'] = getExampleName example, exampleIndex
 
             # Paths can't have empty example
-            if example['name'] == ""
-              pathOrigin['exampleName'] = "Example " + (exampleIndex + 1)
-            else
-              pathOrigin['exampleName'] = example['name']
-
-
+            pathOrigin['exampleName'] = getExamplePath example, exampleIndex
 
             result = exampleToHttpPayloadPair example
 
